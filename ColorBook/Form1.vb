@@ -3,13 +3,13 @@
     Dim FillColor As Color = Color.Red
     Dim BorderColor As Color = Color.Black
     Dim Stack As Stack = New Stack()
-    Dim PalletteWidth As Integer = 64
-    Dim Pallette(9) As Color
+    Dim PalletteWidth As Integer = 48
+    Dim Pallette(19) As Color
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ' Read image data.
         Bitmap = Bitmap.FromFile("C:\Users\Brent\Documents\Colouring Pages\Alien.bmp")
         ' Resize window.
-        SetClientSizeCore(Bitmap.Width + PalletteWidth, Bitmap.Height + MenuStrip1.Height)
+        SetClientSizeCore(Bitmap.Width + PalletteWidth * 2, Bitmap.Height + MenuStrip1.Height)
     End Sub
     Private Sub Form1_Paint(sender As Object, e As PaintEventArgs) Handles MyBase.Paint
         ' Create Point for upper-left corner of image.
@@ -17,23 +17,40 @@
         ' Draw image to screen.
         e.Graphics.DrawImage(Bitmap, ulCorner)
         ' Draw palette.
-        Pallette(0) = Color.White
-        Pallette(1) = Color.Red
-        Pallette(2) = Color.Blue
-        Pallette(3) = Color.Green
-        Pallette(4) = Color.Yellow
+        Pallette(0) = Color.FromArgb(255, 255, 255)
+        Pallette(1) = Color.FromArgb(1, 1, 1)
+        Pallette(2) = Color.FromArgb(195, 195, 195)
+        Pallette(3) = Color.FromArgb(127, 127, 127)
+        Pallette(4) = Color.FromArgb(185, 122, 87)
         Pallette(5) = Color.FromArgb(136, 0, 21)
         Pallette(6) = Color.FromArgb(255, 174, 201)
-        Pallette(7) = Color.FromArgb(153, 217, 234)
-        Pallette(8) = Color.FromArgb(163, 73, 164)
-        Pallette(9) = Color.FromArgb(185, 122, 87)
+        Pallette(7) = Color.FromArgb(237, 28, 36)
+        Pallette(8) = Color.FromArgb(255, 201, 14)
+        Pallette(9) = Color.FromArgb(255, 127, 39)
+        Pallette(10) = Color.FromArgb(239, 228, 176)
+        Pallette(11) = Color.FromArgb(255, 242, 0)
+        Pallette(12) = Color.FromArgb(181, 230, 29)
+        Pallette(13) = Color.FromArgb(34, 177, 76)
+        Pallette(14) = Color.FromArgb(153, 217, 234)
+        Pallette(15) = Color.FromArgb(0, 162, 232)
+        Pallette(16) = Color.FromArgb(112, 146, 190)
+        Pallette(17) = Color.FromArgb(63, 72, 204)
+        Pallette(18) = Color.FromArgb(200, 191, 231)
+        Pallette(19) = Color.FromArgb(163, 73, 164)
+
         e.Graphics.TranslateTransform(0, MenuStrip1.Height)
-        For I = 0 To Pallette.Count - 1
+        For I = 0 To Pallette.Count - 1 Step 2
             Dim BrushColor = New SolidBrush(Pallette(I))
             Dim PenColor = New Pen(Brushes.Black)
-            e.Graphics.FillRectangle(BrushColor, Bitmap.Width, I * PalletteWidth, PalletteWidth, PalletteWidth)
+            Dim PalletteY As Integer = I / 2 * PalletteWidth
+            e.Graphics.FillRectangle(BrushColor, Bitmap.Width, PalletteY, PalletteWidth, PalletteWidth)
             If (Pallette(I).ToArgb() = FillColor.ToArgb()) Then
-                e.Graphics.DrawRectangle(PenColor, Bitmap.Width + 1, I * PalletteWidth + 1, PalletteWidth - 2, PalletteWidth - 2)
+                e.Graphics.DrawRectangle(PenColor, Bitmap.Width + 1, PalletteY + 1, PalletteWidth - 2, PalletteWidth - 2)
+            End If
+            BrushColor = New SolidBrush(Pallette(I + 1))
+            e.Graphics.FillRectangle(BrushColor, Bitmap.Width + PalletteWidth, PalletteY, PalletteWidth, PalletteWidth)
+            If (Pallette(I + 1).ToArgb() = FillColor.ToArgb()) Then
+                e.Graphics.DrawRectangle(PenColor, Bitmap.Width + PalletteWidth + 1, PalletteY + 1, PalletteWidth - 2, PalletteWidth - 2)
             End If
         Next
     End Sub
@@ -106,9 +123,13 @@
         Dim x = e.X
         Dim y = e.Y - MenuStrip1.Height
         Dim Graphics = Me.CreateGraphics()
-        If (x > Bitmap.Width And y < PalletteWidth * (Pallette.Count)) Then
-            FillColor = Pallette(Math.Floor(y / PalletteWidth))
-            Invalidate(New Rectangle(Bitmap.Width, MenuStrip1.Height, PalletteWidth, PalletteWidth * Pallette.Count))
+        If (x > Bitmap.Width And y < PalletteWidth * (Pallette.Count / 2)) Then
+            Dim Bmp = New Bitmap(1, 1)
+            Dim G As Graphics = Graphics.FromImage(Bmp)
+            G.CopyFromScreen(PointToScreen(e.Location), Point.Empty, Bmp.Size)
+            FillColor = Bmp.GetPixel(0, 0)
+            'FillColor = Pallette(Math.Floor(y / PalletteWidth))
+            Invalidate(New Rectangle(Bitmap.Width, MenuStrip1.Height, PalletteWidth * 2, PalletteWidth * Pallette.Count / 2))
         ElseIf (x < Bitmap.Width And y < Bitmap.Height) Then
             Dim TargetColor As Color = Bitmap.GetPixel(x, y)
             If (TargetColor.ToArgb() <> Color.Black.ToArgb()) Then
